@@ -1,0 +1,37 @@
+{
+  "name": "hunt-the-wumpus",
+  "version": "1.0.0",
+  "author": "Jimmy Cuadra <jimmy@jimmycuadra.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "autoprefixer": "^9.5.1",
+    "node-sass": "^4.11.0",
+    "nodemon": "^1.18.11",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^7.0.14",
+    "postcss-cli": "^6.1.2",
+    "rollup": "^1.10.0",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-postcss": "^2.0.3",
+    "rollup-plugin-uglify": "^6.0.2",
+    "rollup-plugin-wasm": "^3.0.0",
+    "serve": "^11.0.0"
+  },
+  "scripts": {
+    "build:js": "rollup -c",
+    "build:rs": "cargo web deploy --release",
+    "build:scss": "node-sass --include-path scss scss/hunt.scss css/hunt.css",
+    "build:css": "postcss --use autoprefixer -o static/hunt.css css/hunt.css",
+    "build:style": "run-s build:scss build:css",
+    "build:copy": "cp target/deploy/hunt.css release/ && cp target/deploy/hunt-the-wumpus.wasm release/ && cp target/deploy/index.html release/ && cp target/deploy/favicon.ico release/",
+    "build": "run-s clean:deploy build:rs build:js build:style build:copy",
+    "clean:deploy": "rm -rf /release",
+    "prod": "run-s build serve",
+    "serve": "serve -p 8080 release",
+    "watch:rs": "cargo web start --release",
+    "test": "echo \"Error: no tests!\" && exit 1"
+  }
+}
