@@ -1,7 +1,4 @@
-use yew::{
-    html,
-    prelude::*,
-};
+use yew::{html, prelude::*};
 
 pub struct Controls {
     title: String,

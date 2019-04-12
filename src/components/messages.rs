@@ -1,15 +1,11 @@
-use yew::{
-    html,
-    prelude::*,
-};
+use yew::{html, prelude::*};
 
 pub struct Messages {
     title: String,
     messages: Vec<String>,
 }
 
-pub enum Msg {
-}
+pub enum Msg {}
 
 #[derive(Clone, PartialEq)]
 pub struct Props {

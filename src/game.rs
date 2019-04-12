@@ -1,4 +1,4 @@
-use crate::util::{js_rand, gen_range_avoiding, room_exits};
+use crate::util::{gen_range_avoiding, js_rand, room_exits};
 
 pub struct Game {
     pub arrows: u8,
@@ -12,7 +12,8 @@ pub struct Game {
 impl Game {
     pub fn configure_cave(&mut self) {
         self.messages.push(
-            "You've entered a clammy, dark cave, armed with 5 arrows. You are very cold.".to_owned(),
+            "You've entered a clammy, dark cave, armed with 5 arrows. You are very cold."
+                .to_owned(),
         );
         self.wumpus = js_rand(1, 20);
         self.bats[0] = self.get_empty_room();
@@ -32,9 +33,10 @@ impl Game {
         } else if self.bats.contains(&self.current_room) {
             let current = self.current_room;
             let next = self.get_empty_room();
-            self.messages.push(
-                format!("A gigantic bat whisks you from room {} to room {} before you can even blink", current, next)
-            );
+            self.messages.push(format!(
+                "A gigantic bat whisks you from room {} to room {} before you can even blink",
+                current, next
+            ));
             self.current_room = next;
             self.warning_messages();
 
@@ -64,17 +66,14 @@ impl Game {
             let t = *adj;
 
             if self.wumpus == t {
-                self.messages.push(
-                    "You smell something horrific and rancid.".to_owned(),
-                );
+                self.messages
+                    .push("You smell something horrific and rancid.".to_owned());
             } else if self.pits.contains(&t) {
-                self.messages.push(
-                    "You feel a cold updraft from a nearby cavern.".to_owned(),
-                );
+                self.messages
+                    .push("You feel a cold updraft from a nearby cavern.".to_owned());
             } else if self.bats.contains(&t) {
-                self.messages.push(
-                    "You hear a faint but distinct flapping of wings.".to_owned(),
-                );
+                self.messages
+                    .push("You hear a faint but distinct flapping of wings.".to_owned());
             }
         }
     }

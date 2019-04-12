@@ -9,17 +9,10 @@ mod components {
 mod game;
 mod util;
 
-use yew::{
-    html,
-    prelude::*,
-};
+use yew::{html, prelude::*};
 
 use crate::{
-    components::{
-        controls::Controls,
-        messages::Messages,
-        stats::Stats,
-    },
+    components::{controls::Controls, messages::Messages, stats::Stats},
     game::Game,
     util::{js_rand, room_exits},
 };
@@ -60,13 +53,13 @@ impl Component for Model {
                         );
                     } else {
                         game.arrows -= 1;
-                        game.messages.push(
-                            "You arrow whistles aimlessly into the void".to_owned()
-                        );
+                        game.messages
+                            .push("You arrow whistles aimlessly into the void".to_owned());
 
                         if game.arrows == 0 {
                             *self = Model::Waiting(
-                                "You fired your very last arrow - you are now wumpus food".to_owned()
+                                "You fired your very last arrow - you are now wumpus food"
+                                    .to_owned(),
                             );
                         } else {
                             let rand = js_rand(1, 4);
@@ -77,7 +70,8 @@ impl Component for Model {
                                 );
                             } else {
                                 game.messages.push(
-                                    "You hear a deafening roar - you've disturbed the wumpus!".to_owned()
+                                    "You hear a deafening roar - you've disturbed the wumpus!"
+                                        .to_owned(),
                                 );
 
                                 let wumpus_exits = room_exits(game.wumpus);
@@ -94,7 +88,7 @@ impl Component for Model {
                     }
                 }
                 _ => unreachable!(),
-            }
+            },
             Msg::SwitchRoom(target) => match self {
                 Model::Playing(game) => {
                     game.current_room = target;
@@ -104,7 +98,7 @@ impl Component for Model {
                     }
                 }
                 _ => unreachable!(),
-            }
+            },
             Msg::StartGame => *self = Model::Playing(Game::default()),
         }
 

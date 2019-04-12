@@ -1,7 +1,4 @@
-use yew::{
-    html,
-    prelude::*,
-};
+use yew::{html, prelude::*};
 
 pub struct Stats {
     title: String,
@@ -9,8 +6,7 @@ pub struct Stats {
     current_room: u8,
 }
 
-pub enum Msg {
-}
+pub enum Msg {}
 
 #[derive(Clone, PartialEq)]
 pub struct Props {
