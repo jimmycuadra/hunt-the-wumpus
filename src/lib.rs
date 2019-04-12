@@ -1,55 +1,45 @@
+#[macro_use]
+extern crate stdweb;
+
 mod components {
     pub mod controls;
     pub mod messages;
     pub mod stats;
 }
+mod game;
+mod util;
 
 use yew::{
     html,
     prelude::*,
 };
 
-use components::{
-    controls::Controls,
-    messages::Messages,
-    stats::Stats,
+use crate::{
+    components::{
+        controls::Controls,
+        messages::Messages,
+        stats::Stats,
+    },
+    game::Game,
+    util::{js_rand, room_exits},
 };
 
-fn room_exits(id: u8) -> Option<[u8; 3]> {
-  match id {
-    1 => Some([2, 5, 8]),
-    2 => Some([1, 3, 10]),
-    3 => Some([2, 4, 12]),
-    4 => Some([3, 5, 14]),
-    5 => Some([1, 4, 6]),
-    6 => Some([5, 7, 15]),
-    7 => Some([6, 8, 17]),
-    8 => Some([1, 7, 11]),
-    9 => Some([10, 12, 19]),
-    10 => Some([2, 9, 11]),
-    11 => Some([8, 10, 20]),
-    12 => Some([3, 9, 13]),
-    13 => Some([12, 14, 18]),
-    14 => Some([4, 13, 15]),
-    15 => Some([6, 14, 16]),
-    16 => Some([15, 17, 18]),
-    17 => Some([7, 16, 20]),
-    18 => Some([13, 16, 19]),
-    19 => Some([9, 18, 20]),
-    20 => Some([11, 17, 19]),
-    _ => None
-  }
-}
-
-pub struct Model {
-    arrows: u8,
-    current_room: u8,
-    messages: Vec<String>,
+pub enum Model {
+    Waiting(String),
+    Playing(Game),
 }
 
 #[derive(Clone, Debug)]
 pub enum Msg {
+    StartGame,
+    ShootArrow(u8),
     SwitchRoom(u8),
+}
+
+impl Default for Model {
+    fn default() -> Self {
+        Model::Waiting("New Game!".to_owned())
+    }
 }
 
 impl Component for Model {
@@ -57,38 +47,90 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {
-            arrows: 5,
-            current_room: 1,
-            messages: vec![
-                "You've entered a clammy, dark cave, armed with 5 arrows. You are very cold.".to_owned(),
-            ],
-        }
+        Model::default()
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SwitchRoom(target) => {
-                self.current_room = target;
-                self.messages.push(format!("Moved to room {}", target));
+            Msg::ShootArrow(target) => match self {
+                Model::Playing(game) => {
+                    if game.wumpus == target {
+                        *self = Model::Waiting(
+                            "With a sickening, satisfying thwack, your arrow finds its mark. Wumpus for dinner tonight! You win.".to_owned()
+                        );
+                    } else {
+                        game.arrows -= 1;
+                        game.messages.push(
+                            "You arrow whistles aimlessly into the void".to_owned()
+                        );
 
-                true
+                        if game.arrows == 0 {
+                            *self = Model::Waiting(
+                                "You fired your very last arrow - you are now wumpus food".to_owned()
+                            );
+                        } else {
+                            let rand = js_rand(1, 4);
+
+                            if rand == 1 {
+                                game.messages.push(
+                                    "You listen quietly for any sign of movement - but the cave remains still.".to_owned(),
+                                );
+                            } else {
+                                game.messages.push(
+                                    "You hear a deafening roar - you've disturbed the wumpus!".to_owned()
+                                );
+
+                                let wumpus_exits = room_exits(game.wumpus);
+                                let rand_idx = js_rand(0, 2);
+                                game.wumpus = wumpus_exits[rand_idx as usize];
+
+                                if game.wumpus == game.current_room {
+                                    *self = Model::Waiting(
+                                        "You scared the wumpus right on top of you. Good going, mincemeat".to_owned(),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                _ => unreachable!(),
             }
+            Msg::SwitchRoom(target) => match self {
+                Model::Playing(game) => {
+                    game.current_room = target;
+
+                    if let Some(msg) = game.move_effects() {
+                        *self = Model::Waiting(msg);
+                    }
+                }
+                _ => unreachable!(),
+            }
+            Msg::StartGame => *self = Model::Playing(Game::default()),
         }
+
+        true
     }
 }
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
-        html! {
-            <div class="hunt",>
-                <div class="header",>{ "Hunt the Wumpus" }</div>
-                <div class="window",>
-                    <Stats: arrows = self.arrows, current_room = self.current_room, />
-                    <Controls: exits = room_exits(self.current_room).unwrap(), onsignal = |msg| msg, />
-                    <Messages: messages = &self.messages, />
+        match self {
+            Model::Waiting(s) => html! {
+                <div class="hunt",>
+                    <span class="over-message",>{ s }</span>
+                    <button onclick = |_| Msg::StartGame,>{ "Play Again" }</button>
                 </div>
-            </div>
+            },
+            Model::Playing(game) => html! {
+                <div class="hunt",>
+                    <div class="header",>{ "Hunt the Wumpus" }</div>
+                    <div class="window",>
+                        <Stats: arrows = game.arrows, current_room = game.current_room, />
+                        <Controls: exits = room_exits(game.current_room), onsignal = |msg| msg, />
+                        <Messages: messages = &game.messages, />
+                    </div>
+                </div>
+            },
         }
     }
 }

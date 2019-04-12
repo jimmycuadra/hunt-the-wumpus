@@ -55,7 +55,7 @@ impl Renderable<Stats> for Stats {
     fn view(&self) -> Html<Self> {
         html! {
             <div class=("container", "container-stats"),>
-                <span class="title",>{ "Stats" }</span><br />
+                <span class="title",>{ &self.title }</span><br />
                 <span class="arrows",>{ &format!("Arrows: {}", self.arrows) }</span><br />
                 <span class="current-room",>{ &format!("Current Room: {}", self.current_room) }</span>
             </div>
